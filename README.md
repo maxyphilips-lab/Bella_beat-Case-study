@@ -44,7 +44,7 @@ A comprehensive dashboard was created to synthesize the findings, providing both
 
 Explore the full, interactive version of the analysis on Tableau Public:
 
-Primary Dashboard Link: Bellabeat Primary Dashboard
+[Primary Dashboard Link: Bellabeat Primary Dashboard](https://public.tableau.com/views/BellaBeatFitnessProject/Dashboard1?:language=en-GB&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)
 
 #### Code Repository
 
