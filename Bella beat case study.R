@@ -1,0 +1,263 @@
+---
+  title: "BELLA BEAT Data Analysis Capstone Project"
+author: "Maxwell Philip"
+date: "2025-11-21"
+output:
+  html_document: default
+pdf_document: default
+---
+  ### GETTING ENVIRONMENT READY 
+  ```{r}
+
+library("tidyverse")
+library(lubridate)
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(dplyr)
+library(tidyr)
+```
+
+
+### LOAD DATASET
+```{r load datasets}
+activity1 <- read_csv("/Users/maxwellphilip/Desktop/Fitness Data 1/dailyActivity_set_1.csv")
+calories1 <- read_csv("/Users/maxwellphilip/Desktop/Fitness Data 1/dailyCalories_set_1.csv")
+intensity1 <- read_csv("/Users/maxwellphilip/Desktop/Fitness Data 1/dailyIntensities_set_1.csv")
+steps1 <- read_csv("/Users/maxwellphilip/Desktop/Fitness Data 1/dailySteps_set_1.csv")
+sleep1 <- read_csv("/Users/maxwellphilip/Desktop/Fitness Data 1/sleepDays_set_1.csv")
+weight1 <- read_csv("/Users/maxwellphilip/Desktop/Fitness Data 1/weightLogInfo_set_1.csv")
+
+activity2 <- read_csv("/Users/maxwellphilip/Desktop/Fitness Data 1/dailyActivity_set2.csv")
+calories2 <- read_csv("/Users/maxwellphilip/Desktop/Fitness Data 1/daily_Calories_set2.csv")
+intensity2 <- read_csv("/Users/maxwellphilip/Desktop/Fitness Data 1/daily_Intensities_set2.csv")
+steps2 <- read_csv("/Users/maxwellphilip/Desktop/Fitness Data 1/daily_Steps_set2.csv")
+sleep2 <- read_csv("/Users/maxwellphilip/Desktop/Fitness Data 1/daily_Sleep_set2.csv")
+weight2 <- read_csv("/Users/maxwellphilip/Desktop/Fitness Data 1/weightLogInfo_set2.csv")
+```
+
+
+### View Files Format 
+```{r view format}
+glimpse(activity1)
+glimpse(calories1)
+glimpse(intensity1)
+glimpse(steps1)
+glimpse(sleep1)
+glimpse(weight1)
+
+```
+
+### DATA CLEANING AND MERGING
+```{r}
+steps1 <- steps1 %>%
+  mutate(Date = mdy(ActivityDay))
+steps2 <- steps2 %>%
+  mutate(Date = mdy(`Daily steps`))
+steps <- left_join(steps1, steps2, by = c("Id", "Date"))
+```
+
+```{r}
+calories1 <- calories1 %>%
+  mutate(Date = mdy(ActivityDay))
+calories2 <- calories2 %>%
+  mutate(Date = mdy(Date))
+calories <- left_join(calories1, calories2, by = c("Id", "Date"))
+```
+
+```{r}
+intensity1 <- intensity1 %>%
+  mutate(Date = mdy(ActivityDay))
+intensity2 <- intensity2 %>%
+  mutate(Date = mdy(ActivityHour))
+intensity <- left_join(intensity1, intensity2, by = c("Id", "Date"))
+```
+
+```{r}
+sleep2 <- sleep2 %>%
+  mutate(Date = mdy(date))
+sleep <- bind_rows(sleep1, sleep2)
+```
+
+```{r}
+activity1 <- activity1 %>%
+  mutate(Date = mdy(ActivityDate))
+activity2 <- activity2 %>%
+  mutate(Date = mdy(ActivityDate))
+activity <- left_join(activity1, activity2, by = c("Id", "Date"))
+```
+
+```{r}
+weight1 <- weight1 %>%
+  mutate(Date = mdy(Date))
+weight2 <- weight2 %>%
+  mutate(Date = mdy(Date))
+weight <- left_join(weight1, weight2, by = c("Id", "Date"))
+```
+
+### Summarize steps daily
+```{r}
+steps_daily <- steps %>%
+  group_by(Id, Date) %>%
+  summarise(StepTotal.x = sum(StepTotal.x), .groups = "drop")
+
+```
+
+### Summarize calories daily
+```{r}
+calories_daily <- calories %>%
+  group_by(Id, Date) %>%
+  summarise(Calories.x = sum(Calories.x), .groups="drop")
+```
+
+### Summarize intensity daily
+```{r}
+intensity_daily <- intensity %>%
+  group_by(Id, Date) %>%
+  summarise(
+    VeryActiveMinutes = sum(VeryActiveMinutes),
+    FairlyActiveMinutes = sum(FairlyActiveMinutes),
+    LightlyActiveMinutes = sum(LightlyActiveMinutes),
+    SedentaryMinutes = sum(SedentaryMinutes),
+    .groups="drop"
+  )
+
+```
+
+
+### Summarize sleep daily
+```{r}
+sleep_daily <- sleep %>%
+  group_by(Id, Date) %>%
+  summarise(
+    TotalSleepRecords = n(),
+    TotalMinutesAsleep = sum(TotalMinutesAsleep),
+    TotalTimeInBed = sum(TotalTimeInBed),
+    .groups="drop"
+  )
+```
+
+### Merge all datasets into master_clean
+```{r merge data}
+master <- activity %>%
+  left_join(steps_daily,      by=c("Id","Date")) %>%
+  left_join(calories_daily,   by=c("Id","Date")) %>%
+  left_join(intensity_daily,  by=c("Id","Date")) %>%
+  left_join(weight,           by= c("Id","Date")) %>% 
+  left_join(sleep_daily,      by=c("Id","Date"))
+
+```
+
+
+```{r}
+master_clean <- master %>%
+  select(
+    Id, Date, TotalSteps.x, 
+    TotalDistance.x, TrackerDistance.x, VeryActiveDistance.x, ModeratelyActiveDistance.x, 
+    LightActiveDistance.x, SedentaryActiveDistance.x, 
+    VeryActiveMinutes.x, FairlyActiveMinutes.x, LightlyActiveMinutes.x, SedentaryMinutes.x, 
+    Calories.x.x, TotalSleepRecords, TotalMinutesAsleep, TotalTimeInBed
+  ) %>%
+  rename(
+    StepTotal             = TotalSteps.x,
+    TotalDistance         = TotalDistance.x,
+    TrackerDistance       = TrackerDistance.x,
+    VeryActiveDistance    = VeryActiveDistance.x,
+    ModeratelyActiveDistance = ModeratelyActiveDistance.x,
+    LightActiveDistance   = LightActiveDistance.x,
+    SedentaryActiveDistance = SedentaryActiveDistance.x,
+    VeryActiveMinutes     = VeryActiveMinutes.x,
+    FairlyActiveMinutes   = FairlyActiveMinutes.x,
+    LightlyActiveMinutes  = LightlyActiveMinutes.x,
+    SedentaryMinutes      = SedentaryMinutes.x,
+    Calories              = Calories.x.x
+  ) %>%
+  mutate(
+    activity_level = case_when(
+      StepTotal >= 10000 ~ "High",
+      StepTotal >= 5000  ~ "Medium",
+      TRUE               ~ "Low"
+    ),
+    weekday = weekdays(Date)
+  )
+
+```
+
+### EXPLORATORY DATA ANALYSIS (EDA)
+### Plot 1. Steps Vs Calories
+```{r steps and calories}
+ggplot(master_clean, aes(StepTotal, Calories)) +
+  geom_point(aes(color = StepTotal < 2000), alpha=0.5) +
+  geom_smooth(method="lm", color="#d62728") +
+  scale_color_manual(values=c("TRUE"="red","FALSE"="blue")) +
+  labs(
+    title="Steps vs Calories (Red = Low Steps)",
+    x="Total Steps",
+    y="Calories Burned",
+    color="Low Steps (<2000)"
+  )
+```
+
+#### Insight: Red points show days with very few steps but calories are still high, 
+#### users could be encouraged to move more.
+
+### Plot 2: Very Active Minutes vs Calories
+```{r Active minutes and Calories}
+ggplot(master_clean, aes(VeryActiveMinutes, Calories)) +
+  geom_point(aes(color = VeryActiveMinutes == 0), alpha=0.5) +
+  geom_smooth(method="lm", color="#9467bd") +
+  scale_color_manual(values=c("TRUE"="red","FALSE"="blue")) +
+  labs(
+    title="Very Active Minutes vs Calories (Red = No Intense Activity)",
+    x="Very Active Minutes",
+    y="Calories Burned",
+    color="No Very Active Minutes"
+  )
+```
+
+#### Insight: Red points are days with no intense activity. Short high-intensity workouts could be suggested.
+
+### Plot 3: Average Steps by Weekday
+{r steps by weekday}
+master_clean %>%
+  group_by(weekday) %>%
+  summarise(avg_steps = mean(StepTotal, na.rm=TRUE)) %>%
+  ggplot(aes(x=reorder(weekday, avg_steps), y=avg_steps)) +
+  geom_col(fill="#1f77b4") +
+  labs(title="Average Steps by Weekday", x="Weekday", y="Average Steps")
+
+
+
+#### Insight: Steps are lower on weekends. Marketing campaigns can target weekend engagement.
+
+### Plot 4: User Activity Segments
+{r User Activity Segments}
+master_clean %>%
+  group_by(activity_level) %>%
+  summarise(count = n()) %>%
+  ggplot(aes(x=activity_level, y=count, fill=activity_level)) +
+  geom_col() +
+  scale_fill_manual(values=c("Low"="#d62728","Medium"="#ff7f0e","High"="#2ca02c")) +
+  labs(title="User Activity Levels", x="Activity Level", y="Number of Records", fill="Activity Level")
+```
+
+#### Insight: Most users are Medium or Low activity. Campaigns can be personalized for each group.
+
+### FINDINGS
+
+- Some users burn calories even with few steps (BMR contributes)
+- Many users do not perform intense activity.
+- Activity is lower on weekends.
+- Users can be grouped into High, Medium, Low activity levels.
+
+### RECOMMENDATIONS
+
+- Encourage low-step users to increase steps via challenges.
+- Promote short, intense workouts for users with no high-intensity activity.
+- Target weekends with fun engagement campaigns.
+- Personalize marketing messages for different activity groups.
+
+### CONCLUSION
+- Simple data insights can help Bellabeat increase engagement.
+- Segmentation and trend analysis allow targeted marketing.
+- Visualizations clearly support marketing decisions in a way easy to explain.
