@@ -41,13 +41,15 @@ A comprehensive dashboard was created to synthesize the findings, providing both
 ![Bellabeat Dashboard Preview](Bella beat Dashboard.png)
 
 #### Live Interactive Dashboard
+
 Explore the full, interactive version of the analysis on Tableau Public:
 
 Primary Dashboard Link: Bellabeat Primary Dashboard
-### Code Repository
+
+#### Code Repository
+
 The raw R Markdown file (containing the narrative and output) and the R Script (containing the raw code) are available here for full transparency and review:
 
 R Markdown File (Narrative): [View R Markdown File](Bellabeat Case study .Rmd)
 
-R Script File (Raw Code): [View R Script File](Bella beat case study.R)
 R Script File (Raw Code): [View R Script File](Bella beat case study.R)
